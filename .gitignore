@@ -1,0 +1,21 @@
+# ROMs and generated output (large / user-provided binaries)
+roms/*.nes
+output/*.mp4
+output/*.txt
+!output/.gitkeep
+
+# BizHawk emulator distribution (download separately, do not commit)
+BizHawk*/
+*.tar.gz
+
+# BizHawk frame captures
+frames/
+BizHawk/frames/
+
+# Python
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

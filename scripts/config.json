@@ -1,0 +1,7 @@
+{
+  "bizhawk_exe": "C:\\BizHawk\\EmuHawk.exe",
+  "rom_dir": "C:\\nes-reel-project\\roms",
+  "output_dir": "C:\\nes-reel-project\\output",
+  "frames_dir": "C:\\BizHawk\\frames",
+  "timeout_sec": 60
+}
