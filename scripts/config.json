@@ -1,7 +1,8 @@
 {
-  "bizhawk_exe": "C:\\BizHawk\\EmuHawk.exe",
-  "rom_dir": "C:\\nes-reel-project\\roms",
-  "output_dir": "C:\\nes-reel-project\\output",
-  "frames_dir": "C:\\BizHawk\\frames",
-  "timeout_sec": 60
+  "bizhawk_path": "./bizhawk/EmuHawkMono.sh",
+  "rom_dir": "./roms",
+  "output_dir": "./output",
+  "frames_dir": "./output/.frames",
+  "timeout_sec": 60,
+  "use_xvfb": "auto"
 }
