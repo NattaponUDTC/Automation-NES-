@@ -5,7 +5,7 @@
 ## วิธีทำงาน
 
 1. `scripts/generic_preview.lua` — รันใน BizHawk, สุ่มกดปุ่ม (bias เดินหน้า/กระโดด) เป็นเวลา 900 เฟรม (15 วิ @ 60fps) แล้ว capture screenshot ทุกเฟรมลงโฟลเดอร์ที่กำหนด
-2. `scripts/batch_generate.py` — วนลูปทุกไฟล์ `.nes` ใน `roms/`, สั่ง BizHawk รัน lua script ข้างต้นทีละเกม (headless ผ่าน `xvfb-run` ถ้าไม่มีจอ), จากนั้นใช้ ffmpeg ประกอบ screenshot ที่ได้เป็นวิดีโอ, scale/pad เป็นแนวตั้ง 1080x1920 (nearest-neighbor เพื่อรักษาความคมของ pixel art)
+2. `scripts/batch_generate.py` — วนลูปทุกไฟล์ `.nes` ใน `roms/`, สั่ง BizHawk รัน lua script ข้างต้นทีละเกม (ถ้าไม่มีจอจริงจะครอบด้วย `xvfb-run` ให้อัตโนมัติ — ดูความเสี่ยงเรื่องนี้ในหัวข้อ "ไม่มีจอจริง" ด้านล่าง), จากนั้นใช้ ffmpeg ประกอบ screenshot ที่ได้เป็นวิดีโอ, scale/pad เป็นแนวตั้ง 1080x1920 (nearest-neighbor เพื่อรักษาความคมของ pixel art)
 3. ไฟล์ผลลัพธ์แต่ละเกมจะถูกเซฟที่ `output/{ชื่อเกม}_reel.mp4`
 
 รองรับทั้ง Windows (`EmuHawk.exe`) และ Linux (`EmuHawkMono.sh` ผ่าน mono)
@@ -35,7 +35,13 @@
 
    ควรเห็น `[OK]` ทุกบรรทัด (ยกเว้น `[WARN]` เรื่องยังไม่มี ROM ถ้ายังไม่ได้วางไฟล์)
 
-5. รัน:
+5. ทดสอบเร็วด้วย ROM 1 ไฟล์ก่อน (สำคัญถ้าเครื่องไม่มีจอจริง ดูหัวข้อด้านล่าง):
+
+   ```bash
+   python3 scripts/smoke_test.py
+   ```
+
+6. ถ้า smoke test ผ่าน รันจริงทั้งหมด:
 
    ```bash
    python3 scripts/batch_generate.py
@@ -69,6 +75,14 @@
 
 ## Run
 
+**ทดสอบเร็วก่อนเสมอ** (สำคัญเป็นพิเศษถ้าเครื่องไม่มีจอจริง — ดูหัวข้อ "ไม่มีจอ" ด้านล่าง):
+
+```bash
+python3 scripts/smoke_test.py
+```
+
+รันแค่ ROM แรกที่เจอ ~30 เฟรม + screenshot 1 รูป ใช้เวลาไม่กี่วินาที ถ้า `[OK]` ค่อยรันจริง:
+
 ```bash
 python3 scripts/batch_generate.py
 ```
@@ -77,6 +91,20 @@ python3 scripts/batch_generate.py
 - ประมวลผลทุก ROM ใน `roms/` อัตโนมัติทีละไฟล์, ข้ามไฟล์ที่มี output อยู่แล้ว (resume ได้)
 - log การทำงานอยู่ที่ `output/batch_log.txt`
 - ถ้าเกมค้าง/ไม่ตอบสนอง จะถูก timeout และข้ามไปเกมถัดไปโดยอัตโนมัติ
+
+## ไม่มีจอจริง (headless server) — ใช้ได้จริงไหม?
+
+**ตอบตรงๆ: มีความเสี่ยงที่ยังไม่เคยมีใครยืนยันว่าใช้ได้ 100% กับ BizHawk**
+
+- BizHawk **ไม่มี** headless mode อย่างเป็นทางการ — ทีมพัฒนายืนยันเองว่า priority ต่ำมาก ไม่มีแผนทำ ([อ้างอิง](https://tasvideos.org/Forum/Topics/20293))
+- โปรเจกต์นี้แก้ปัญหาด้วย `xvfb-run` (สร้างจอเสมือนใน memory) ซึ่งเป็นเทคนิคมาตรฐานสำหรับรันแอพ GUI บน Linux server (ใช้กับ CI/browser automation ทั่วไป) — `use_xvfb: "auto"` ใน config จะเปิดใช้เองถ้าไม่มี `$DISPLAY`
+- เพื่อลดความเสี่ยงเรื่อง OpenGL context (ปัญหาที่พบบ่อยที่สุดเวลาบังคับแอพ GUI ให้รันผ่านจอเสมือน) โปรเจกต์นี้ตั้ง `LIBGL_ALWAYS_SOFTWARE=1` ให้อัตโนมัติ และใช้จอเสมือนขนาด 1280x1024x24 (ไม่ใช่ค่า default เล็กๆ ของ `xvfb-run`)
+- แต่**ไม่มีแหล่งไหนยืนยันว่ามีคนรัน BizHawk สำเร็จผ่าน Xvfb มาก่อน** — จึงต้องรัน `scripts/smoke_test.py` ก่อนเสมอเพื่อเช็คจริงบนเครื่องของคุณ ถ้า fail ให้ดูข้อความ error ที่สคริปต์พิมพ์ให้ (มักเป็นปัญหา GL/GLX)
+
+**ถ้า smoke test fail บนเครื่องไม่มีจอจริง** ทางเลือกสำรอง:
+1. รันบนเครื่องที่มี desktop environment จริง หรือต่อผ่าน VNC/RDP (ตั้ง `$DISPLAY` เอง ระบบจะข้าม `xvfb-run` อัตโนมัติเพราะ `use_xvfb: "auto"`)
+2. รันในคอนเทนเนอร์ desktop แบบเบา (เช่น Distrobox/Docker ที่มี X server ข้างในเต็มรูปแบบ ไม่ใช่แค่ Xvfb) — ดูตัวอย่างแนวทางนี้ใน [Steam Deck BizHawk setup guide](https://gist.github.com/SpenserHaddad/417a772aea5be99d563fe73295bb62fb) (ใช้ Distrobox)
+3. ลองปรับ `xvfb-run` args เองใน `scripts/batch_generate.py` (`build_command()`) ตาม error ที่เจอ
 
 ## หมายเหตุ
 

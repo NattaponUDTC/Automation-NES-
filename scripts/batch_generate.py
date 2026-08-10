@@ -92,8 +92,23 @@ def preflight():
 def build_command(rom_path):
     cmd = [BIZHAWK, f"--lua={LUA}", rom_path]
     if wants_xvfb():
-        cmd = ["xvfb-run", "-a"] + cmd
+        # -s: จอเสมือนขนาดพอสมควรกับ color depth 24-bit (ค่า default ของ
+        # xvfb-run บาง distro เล็ก/ตื้นเกินไปสำหรับแอพที่ต้องการ GLX context)
+        cmd = ["xvfb-run", "-a", "-s", "-screen 0 1280x1024x24 -ac"] + cmd
     return cmd
+
+
+def build_env():
+    env = dict(os.environ)
+    env["NES_FRAMES_DIR"] = FRAMES_DIR
+    if wants_xvfb():
+        # BizHawk ไม่มี headless mode อย่างเป็นทางการ (ดู
+        # https://tasvideos.org/Forum/Topics/20293) — รันผ่าน Xvfb เป็นเทคนิค
+        # มาตรฐานสำหรับแอพ GUI บน Linux แต่ core render ของ BizHawk อาจต้องการ
+        # OpenGL context ซึ่ง Xvfb เปล่าๆ ให้ไม่เต็มที่ บังคับ Mesa ให้ใช้
+        # software rasterizer (llvmpipe) กัน GL context ล้มเหลวเงียบๆ
+        env.setdefault("LIBGL_ALWAYS_SOFTWARE", "1")
+    return env
 
 
 def process_rom(rom_path):
@@ -113,8 +128,7 @@ def process_rom(rom_path):
         shutil.rmtree(FRAMES_DIR)
     os.makedirs(FRAMES_DIR, exist_ok=True)
 
-    env = dict(os.environ)
-    env["NES_FRAMES_DIR"] = FRAMES_DIR
+    env = build_env()
 
     # fallback เผื่อ env var เข้าไม่ถึง Lua sandbox: เขียน path ไว้ในไฟล์
     # ข้างๆ generic_preview.lua ให้สคริปต์อ่านเอง (ดูคอมเมนต์ในไฟล์ .lua)
