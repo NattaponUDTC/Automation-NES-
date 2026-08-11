@@ -16,9 +16,16 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 CONFIG_PATH = os.path.join(SCRIPT_DIR, "config.json")
 
-OK = "\033[32m[OK]\033[0m"
-FAIL = "\033[31m[FAIL]\033[0m"
-WARN = "\033[33m[WARN]\033[0m"
+# ปิดสี ANSI ถ้า output ไม่ใช่ terminal จริง (เช่นถูก redirect ไปไฟล์/tee
+# โดย scripts/report.sh) กันโค้ดสีเพี้ยนๆ ปนอยู่ในรายงานที่จะก๊อปไปวางที่อื่น
+if sys.stdout.isatty():
+    OK = "\033[32m[OK]\033[0m"
+    FAIL = "\033[31m[FAIL]\033[0m"
+    WARN = "\033[33m[WARN]\033[0m"
+else:
+    OK = "[OK]"
+    FAIL = "[FAIL]"
+    WARN = "[WARN]"
 
 
 def resolve(path):

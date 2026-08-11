@@ -13,39 +13,35 @@
 ## Setup — Linux (แนะนำ)
 
 1. ดาวน์โหลด BizHawk build สำหรับ Linux จาก [official releases](https://github.com/TASEmulators/BizHawk/releases) (เช่น `BizHawk-2.11.1-linux-x64.tar.gz`) มาวางไว้ที่ root ของโปรเจกต์นี้
-2. รัน:
+2. วาง ROM ไฟล์ `.nes` ที่ต้องการไว้ในโฟลเดอร์ `roms/`
+3. รันคำสั่งเดียว:
 
    ```bash
-   ./scripts/setup.sh
+   ./scripts/report.sh
    ```
 
-   สคริปต์นี้จะ:
-   - ติดตั้ง dependencies ที่ BizHawk ต้องใช้บน Linux ผ่าน `apt` — `mono-complete`, `libopenal1`, `lsb-release` (ตามที่ระบุใน [README ของ BizHawk เอง](https://github.com/TASEmulators/BizHawk)) รวมถึง `ffmpeg` และ `xvfb` สำหรับรันแบบไม่มีจอ
-   - แตก tarball ที่วางไว้ลง `./bizhawk/` และตั้ง execute permission ให้ `EmuHawkMono.sh`
-   - สร้างโฟลเดอร์ `roms/` และ `output/` ให้พร้อมใช้
+   สคริปต์นี้ทำให้ครบในรันเดียว: ติดตั้ง dependency ที่ BizHawk ต้องใช้ (`mono-complete`, `libopenal1`, `lsb-release` ตาม [README ของ BizHawk เอง](https://github.com/TASEmulators/BizHawk) รวมถึง `ffmpeg`/`xvfb`), แตก tarball ลง `./bizhawk/` (ข้ามอัตโนมัติถ้าแตกไว้แล้ว), เช็ค environment (`doctor.py`), แล้วทดสอบรันจริง 1 ROM (`smoke_test.py`) — จบแล้วสรุปสถานะ **READY**/**NOT READY** ให้ พร้อมเซฟรายงานเป็นไฟล์ `report_<เวลา>.txt` ไว้ด้วย
 
+   > **ก๊อปข้อความที่ terminal พิมพ์ออกมาทั้งหมดส่งกลับมาได้เลย** ถ้าสถานะเป็น NOT READY หรือมีอะไรดูแปลกๆ — จะได้ดูแล้วบอกวิธีแก้ได้ตรงจุด ไม่ต้องรันสคริปต์ทีละตัวเอง
+   >
    > ถ้า `mono-complete` หาไม่เจอใน apt ของ distro คุณ ให้เพิ่ม [Mono official apt repo](https://www.mono-project.com/download/stable/#download-lin) ก่อนแล้วรันใหม่
 
-3. วาง ROM ไฟล์ `.nes` ทั้งหมดที่ต้องการไว้ในโฟลเดอร์ `roms/`
-4. ตรวจสอบว่าทุกอย่างพร้อม:
-
-   ```bash
-   python3 scripts/doctor.py
-   ```
-
-   ควรเห็น `[OK]` ทุกบรรทัด (ยกเว้น `[WARN]` เรื่องยังไม่มี ROM ถ้ายังไม่ได้วางไฟล์)
-
-5. ทดสอบเร็วด้วย ROM 1 ไฟล์ก่อน (สำคัญถ้าเครื่องไม่มีจอจริง ดูหัวข้อด้านล่าง):
-
-   ```bash
-   python3 scripts/smoke_test.py
-   ```
-
-6. ถ้า smoke test ผ่าน รันจริงทั้งหมด:
+4. ถ้าสถานะเป็น **READY** รันจริงทั้งหมด:
 
    ```bash
    python3 scripts/batch_generate.py
    ```
+
+   (จะรันเฉพาะเมื่ออยากได้ผลลัพธ์จริงเท่านั้น — ขั้นตอนนี้อาจใช้เวลานานเป็นชั่วโมงถ้ามี ROM เยอะ ไม่ต้องรันซ้ำผ่าน `report.sh`)
+
+### รันแยกทีละตัวเอง (ถ้าไม่อยากใช้ report.sh)
+
+```bash
+./scripts/setup.sh        # ติดตั้ง dependency + แตก BizHawk tarball
+python3 scripts/doctor.py    # เช็ค environment
+python3 scripts/smoke_test.py  # ทดสอบเร็ว 1 ROM
+python3 scripts/batch_generate.py  # รันจริงทั้งหมด
+```
 
 ## Setup — Windows
 
@@ -75,13 +71,9 @@
 
 ## Run
 
-**ทดสอบเร็วก่อนเสมอ** (สำคัญเป็นพิเศษถ้าเครื่องไม่มีจอจริง — ดูหัวข้อ "ไม่มีจอ" ด้านล่าง):
+รัน `./scripts/report.sh` ก่อนเสมอ (ดูขั้นตอนใน Setup ด้านบน) จนกว่าจะเห็นสถานะ **READY** — มันรวม `smoke_test.py` (ทดสอบ ROM เดียว ~30 เฟรม ไม่กี่วินาที) ไว้ให้แล้ว สำคัญเป็นพิเศษถ้าเครื่องไม่มีจอจริง (ดูหัวข้อ "ไม่มีจอ" ด้านล่าง)
 
-```bash
-python3 scripts/smoke_test.py
-```
-
-รันแค่ ROM แรกที่เจอ ~30 เฟรม + screenshot 1 รูป ใช้เวลาไม่กี่วินาที ถ้า `[OK]` ค่อยรันจริง:
+พอ READY แล้วค่อยรันจริงทั้งหมด:
 
 ```bash
 python3 scripts/batch_generate.py
@@ -99,7 +91,7 @@ python3 scripts/batch_generate.py
 - BizHawk **ไม่มี** headless mode อย่างเป็นทางการ — ทีมพัฒนายืนยันเองว่า priority ต่ำมาก ไม่มีแผนทำ ([อ้างอิง](https://tasvideos.org/Forum/Topics/20293))
 - โปรเจกต์นี้แก้ปัญหาด้วย `xvfb-run` (สร้างจอเสมือนใน memory) ซึ่งเป็นเทคนิคมาตรฐานสำหรับรันแอพ GUI บน Linux server (ใช้กับ CI/browser automation ทั่วไป) — `use_xvfb: "auto"` ใน config จะเปิดใช้เองถ้าไม่มี `$DISPLAY`
 - เพื่อลดความเสี่ยงเรื่อง OpenGL context (ปัญหาที่พบบ่อยที่สุดเวลาบังคับแอพ GUI ให้รันผ่านจอเสมือน) โปรเจกต์นี้ตั้ง `LIBGL_ALWAYS_SOFTWARE=1` ให้อัตโนมัติ และใช้จอเสมือนขนาด 1280x1024x24 (ไม่ใช่ค่า default เล็กๆ ของ `xvfb-run`)
-- แต่**ไม่มีแหล่งไหนยืนยันว่ามีคนรัน BizHawk สำเร็จผ่าน Xvfb มาก่อน** — จึงต้องรัน `scripts/smoke_test.py` ก่อนเสมอเพื่อเช็คจริงบนเครื่องของคุณ ถ้า fail ให้ดูข้อความ error ที่สคริปต์พิมพ์ให้ (มักเป็นปัญหา GL/GLX)
+- แต่**ไม่มีแหล่งไหนยืนยันว่ามีคนรัน BizHawk สำเร็จผ่าน Xvfb มาก่อน** — จึงต้องรัน `./scripts/report.sh` ก่อนเสมอเพื่อเช็คจริงบนเครื่องของคุณ (มี smoke test อยู่ในนั้น) ถ้าสถานะออกมาเป็น NOT READY ก๊อปรายงานทั้งหมดที่มันพิมพ์ส่งกลับมาได้เลย จะดูให้ว่าปัญหาคืออะไร (มักเป็นปัญหา GL/GLX)
 
 **ถ้า smoke test fail บนเครื่องไม่มีจอจริง** ทางเลือกสำรอง:
 1. รันบนเครื่องที่มี desktop environment จริง หรือต่อผ่าน VNC/RDP (ตั้ง `$DISPLAY` เอง ระบบจะข้าม `xvfb-run` อัตโนมัติเพราะ `use_xvfb: "auto"`)
@@ -115,4 +107,4 @@ python3 scripts/batch_generate.py
 
 ## Troubleshooting
 
-รัน `python3 scripts/doctor.py` ก่อนเสมอเมื่อเจอปัญหา — จะบอกตรงๆ ว่าอะไรขาด (ffmpeg, BizHawk, mono, xvfb-run, permission, ROM) และวิธีแก้
+รัน `./scripts/report.sh` ก่อนเสมอเมื่อเจอปัญหา แล้วก๊อปข้อความทั้งหมดที่มันพิมพ์ (หรือเนื้อหาไฟล์ `report_*.txt` ที่มันเซฟไว้) ส่งกลับมาได้เลย — มันรวมข้อมูล system, tool versions, ROM, ผล `doctor.py`, และผล `smoke_test.py` ไว้ในที่เดียว ไม่ต้องรันหลายคำสั่งเอง
