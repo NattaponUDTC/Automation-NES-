@@ -56,6 +56,15 @@ def main():
     is_windows = platform.system() == "Windows"
     print(f"\nระบบปฏิบัติการ: {platform.system()} ({platform.machine()})\n")
 
+    # รันเป็น root: BizHawk แบบ headless (ไม่มี $DISPLAY) จะค้างตลอดไปที่
+    # dialog เตือน "running as root" ซึ่งไม่มีทาง auto-dismiss ได้ — ทดสอบยืนยันแล้วจริง
+    if not is_windows and hasattr(os, "geteuid") and os.geteuid() == 0 and not os.environ.get("DISPLAY"):
+        all_ok &= check(
+            "ไม่ได้รันเป็น root (ตอนไม่มี $DISPLAY)", False,
+            "BizHawk จะค้างที่ dialog เตือน root ตลอดไป สร้าง user ธรรมดารันแทน "
+            "เช่น: useradd -m nesuser && chown -R nesuser:nesuser . && su nesuser -c '...'",
+        )
+
     # ffmpeg
     ffmpeg_path = shutil.which("ffmpeg")
     all_ok &= check("ffmpeg อยู่ใน PATH", ffmpeg_path is not None, ffmpeg_path or "ติดตั้งด้วย: sudo apt install ffmpeg")

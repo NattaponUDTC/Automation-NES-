@@ -81,6 +81,15 @@ def preflight():
     if not os.path.isdir(ROM_DIR):
         problems.append(f"ไม่พบโฟลเดอร์ ROM '{ROM_DIR}'")
 
+    if (platform.system() != "Windows" and hasattr(os, "geteuid")
+            and os.geteuid() == 0 and not os.environ.get("DISPLAY")):
+        problems.append(
+            "กำลังรันเป็น root โดยไม่มี $DISPLAY — BizHawk จะค้างตลอดไปที่ dialog เตือน "
+            "\"running as root\" (ยืนยันจากการทดสอบจริง ไม่ใช่แค่คาดเดา) "
+            "สร้าง user ธรรมดารันแทน เช่น: useradd -m nesuser && "
+            "chown -R nesuser:nesuser . && su nesuser -c '...'"
+        )
+
     if problems:
         log("Preflight check ไม่ผ่าน:")
         for p in problems:
